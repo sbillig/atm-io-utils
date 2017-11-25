@@ -8,3 +8,5 @@ license = "GPL-3.0"
 repository = "https://github.com/AljoschaMeyer/atm-io-utils"
 
 [dependencies]
+tokio-io = "0.1.4"
+futures = "0.1.17"
