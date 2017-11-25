@@ -5,6 +5,7 @@ use futures::Poll;
 
 /// Implements both (Async)Read and (Async)Write by delegating to an (Async)Read
 /// and an (Async)Write, taking ownership of both.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Duplex<R, W> {
     r: R,
     w: W,
@@ -42,6 +43,14 @@ impl<R, W> Duplex<R, W> {
     }
 }
 
+impl<R: Read, W> Read for Duplex<R, W> {
+    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
+        self.r.read(buf)
+    }
+}
+
+impl<R: AsyncRead, W> AsyncRead for Duplex<R, W> {}
+
 impl<R, W: Write> Write for Duplex<R, W> {
     fn write(&mut self, buf: &[u8]) -> Result<usize, Error> {
         self.w.write(buf)
@@ -57,11 +66,3 @@ impl<R, W: AsyncWrite> AsyncWrite for Duplex<R, W> {
         self.w.shutdown()
     }
 }
-
-impl<R: Read, W> Read for Duplex<R, W> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
-        self.r.read(buf)
-    }
-}
-
-impl<R: AsyncRead, W> AsyncRead for Duplex<R, W> {}
