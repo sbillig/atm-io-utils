@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-use std::cmp::min;
 use std::io::{Write, Read, Error};
 
 use tokio_io::{AsyncRead, AsyncWrite};
