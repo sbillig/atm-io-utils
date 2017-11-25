@@ -10,4 +10,4 @@ mod mock_duplex;
 
 pub use macros::*;
 pub use duplex::*;
-pub use mock_duplex;
+pub use mock_duplex::*;
