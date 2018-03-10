@@ -1,13 +1,9 @@
-//! Utilities for working with `std::io` and `tokio_io`.
+//! Utilities for working with `std::io` and `futures_io`.
 #![deny(missing_docs)]
 
-extern crate tokio_io;
-extern crate futures;
+extern crate futures_core;
+extern crate futures_io;
 
-mod macros;
 mod duplex;
-mod mock_duplex;
 
-pub use macros::*;
 pub use duplex::*;
-pub use mock_duplex::*;

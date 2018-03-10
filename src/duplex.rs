@@ -1,7 +1,6 @@
-use std::io::{Write, Read, Error};
-
-use tokio_io::{AsyncRead, AsyncWrite};
-use futures::Poll;
+use futures_core::Poll;
+use futures_core::task::Context;
+use futures_io::{AsyncRead, AsyncWrite, Error};
 
 /// Implements both (Async)Read and (Async)Write by delegating to an (Async)Read
 /// and an (Async)Write, taking ownership of both.
@@ -43,26 +42,22 @@ impl<R, W> Duplex<R, W> {
     }
 }
 
-impl<R: Read, W> Read for Duplex<R, W> {
-    fn read(&mut self, buf: &mut [u8]) -> Result<usize, Error> {
-        self.r.read(buf)
-    }
-}
-
-impl<R: AsyncRead, W> AsyncRead for Duplex<R, W> {}
-
-impl<R, W: Write> Write for Duplex<R, W> {
-    fn write(&mut self, buf: &[u8]) -> Result<usize, Error> {
-        self.w.write(buf)
-    }
-
-    fn flush(&mut self) -> Result<(), Error> {
-        self.w.flush()
+impl<R: AsyncRead, W> AsyncRead for Duplex<R, W> {
+    fn poll_read(&mut self, cx: &mut Context, buf: &mut [u8]) -> Poll<usize, Error> {
+        self.r.poll_read(cx, buf)
     }
 }
 
 impl<R, W: AsyncWrite> AsyncWrite for Duplex<R, W> {
-    fn shutdown(&mut self) -> Poll<(), Error> {
-        self.w.shutdown()
+    fn poll_write(&mut self, cx: &mut Context, buf: &[u8]) -> Poll<usize, Error> {
+        self.w.poll_write(cx, buf)
+    }
+
+    fn poll_flush(&mut self, cx: &mut Context) -> Poll<(), Error> {
+        self.w.poll_flush(cx)
+    }
+
+    fn poll_close(&mut self, cx: &mut Context) -> Poll<(), Error> {
+        self.w.poll_close(cx)
     }
 }
