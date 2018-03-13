@@ -5,5 +5,7 @@ extern crate futures_core;
 extern crate futures_io;
 
 mod duplex;
+mod macros;
 
 pub use duplex::*;
+pub use macros::*;
