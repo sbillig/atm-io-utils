@@ -2,8 +2,8 @@ use futures_core::Poll;
 use futures_core::task::Context;
 use futures_io::{AsyncRead, AsyncWrite, Error};
 
-/// Implements both (Async)Read and (Async)Write by delegating to an (Async)Read
-/// and an (Async)Write, taking ownership of both.
+/// Implements both AsyncRead and AsyncWrite by delegating to an AsyncRead
+/// and an AsyncWrite, taking ownership of both.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Duplex<R, W> {
     r: R,
@@ -11,7 +11,7 @@ pub struct Duplex<R, W> {
 }
 
 impl<R, W> Duplex<R, W> {
-    /// Takes ownership of a Read and a Write and creates a new Duplex.
+    /// Takes ownership of a reader and a writer and creates a new `Duplex`.
     pub fn new(r: R, w: W) -> Duplex<R, W> {
         Duplex { r, w }
     }
