@@ -4,8 +4,8 @@
 
 use std::cmp::min;
 
-use futures_core::{Future, Poll};
-use futures_core::Async::{Ready, Pending};
+use futures_core::Poll;
+use futures_core::Async::Pending;
 use futures_core::task::Context;
 use futures_io::{AsyncRead, AsyncWrite, Error, IoVec};
 
