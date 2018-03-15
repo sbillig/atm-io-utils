@@ -170,6 +170,10 @@ impl<W, Ops> AsyncRead for PartialWrite<W, Ops>
 
 #[cfg(feature = "quickcheck")]
 mod qs {
+    use super::*;
+
+    use quickcheck::{Arbitrary, Gen, empty_shrinker};
+
     impl Arbitrary for PartialOp {
         fn arbitrary<G: Gen>(g: &mut G) -> Self {
             let rnd = g.next_f32();
@@ -181,7 +185,8 @@ mod qs {
                 if g.size() <= 1 {
                     PartialOp::Limited(1)
                 } else {
-                    PartialOp::Limited(g.gen_range(1..g.size()))
+                    let max = g.size();
+                    PartialOp::Limited(g.gen_range(1, max))
                 }
             }
         }
