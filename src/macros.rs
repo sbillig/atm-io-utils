@@ -15,6 +15,14 @@ macro_rules! retry {
     )
 }
 
+macro_rules! try_ready {
+    ($e:expr) => (match $e {
+        Ok(::futures_core::Async::Ready(t)) => t,
+        Ok(::futures_core::Async::Pending) => return Ok(::futures_core::Async::Pending),
+        Err(e) => return Err(From::from(e)),
+    })
+}
+
 /// A variant of try_ready! that checks whether the expression evaluates to 0, and emits a
 /// `futures_io::Error` of kind `UnexpectedEof` with the given message if so.
 #[macro_export]
