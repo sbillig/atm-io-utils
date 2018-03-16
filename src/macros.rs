@@ -15,22 +15,16 @@ macro_rules! retry {
     )
 }
 
-macro_rules! try_ready {
-    ($e:expr) => (match $e {
-        Ok(::futures_core::Async::Ready(t)) => t,
-        Ok(::futures_core::Async::Pending) => return Ok(::futures_core::Async::Pending),
-        Err(e) => return Err(From::from(e)),
-    })
-}
-
 /// A variant of try_ready! that checks whether the expression evaluates to 0, and emits a
 /// `futures_io::Error` of kind `UnexpectedEof` with the given message if so.
 #[macro_export]
 macro_rules! read_nz {
     ($e:expr, $msg:expr) => (
-        match try_ready!($e) {
-            0 => return Err(::futures_io::Error::new(::futures_io::ErrorKind::UnexpectedEof, $msg).into()),
-            read => read
+        match $e {
+            Ok(::futures_core::Async::Ready(0)) => return Err(::futures_io::Error::new(::futures_io::ErrorKind::UnexpectedEof, $msg).into()),
+            Ok(::futures_core::Async::Ready(read)) => read,
+            Ok(::futures_core::Async::Pending) => return Ok(::futures_core::Async::Pending),
+            Err(e) => return Err(From::from(e)),
         }
     )
 }
@@ -40,9 +34,11 @@ macro_rules! read_nz {
 #[macro_export]
 macro_rules! write_nz {
     ($e:expr, $msg:expr) => (
-        match try_ready!($e) {
-            0 => return Err(::futures_io::Error::new(::futures_io::ErrorKind::WriteZero, $msg).into()),
-            written => written
+        match $e {
+            Ok(::futures_core::Async::Ready(0)) => return Err(::futures_io::Error::new(::futures_io::ErrorKind::WriteZero, $msg).into()),
+            Ok(::futures_core::Async::Ready(written)) => written,
+            Ok(::futures_core::Async::Pending) => return Ok(::futures_core::Async::Pending),
+            Err(e) => return Err(From::from(e)),
         }
     )
 }
