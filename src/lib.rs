@@ -9,6 +9,7 @@ extern crate quickcheck;
 mod duplex;
 mod macros;
 pub mod partial;
+pub mod limited_reader;
 
 pub use duplex::*;
 pub use macros::*;
