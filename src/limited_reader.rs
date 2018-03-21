@@ -1,4 +1,4 @@
-//! A wrapper around a reader thta limits how many bytes can be read from it.
+//! A wrapper around a reader that limits how many bytes can be read from it.
 
 use std::cmp::min;
 
