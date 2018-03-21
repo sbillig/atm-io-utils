@@ -1,6 +1,6 @@
 [package]
 name = "atm-io-utils"
-version = "0.2.4"
+version = "0.2.5"
 authors = ["AljoschaMeyer <mail@aljoscha-meyer.de>"]
 description = "Utilities for implementing and testing std::io and tokio_io related code."
 readme = "README.md"
