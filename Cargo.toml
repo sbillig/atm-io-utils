@@ -8,8 +8,8 @@ license = "AGPL-3.0"
 repository = "https://github.com/AljoschaMeyer/atm-io-utils"
 
 [dependencies]
-futures-core = "0.2.0-alpha"
-futures-io = "0.2.0-alpha"
+futures-core-preview = "0.3.0-alpha.13"
+futures-io-preview = "0.3.0-alpha.13"
 quickcheck = { version = "0.6", optional = true }
 
 [package.metadata.docs.rs]

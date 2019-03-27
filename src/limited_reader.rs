@@ -1,10 +1,10 @@
 //! A wrapper around a reader that limits how many bytes can be read from it.
 
 use std::cmp::min;
+use std::io::Error;
+use std::task::{Poll, Waker};
 
-use futures_core::Poll;
-use futures_core::task::Context;
-use futures_io::{AsyncRead, Error as FutIoErr};
+use futures_io::AsyncRead;
 
 /// Wraps a reader and limits the number of bytes that can be read from it. Once the limit has been
 /// reached, further calls to poll_read will return `Ok(Ready(0))`.
@@ -24,8 +24,8 @@ impl<R> LimitedReader<R> {
 }
 
 impl<R: AsyncRead> AsyncRead for LimitedReader<R> {
-    fn poll_read(&mut self, cx: &mut Context, buf: &mut [u8]) -> Poll<usize, FutIoErr> {
+    fn poll_read(&mut self, wk: &Waker, buf: &mut [u8]) -> Poll<Result<usize, Error>> {
         let upper = min(self.remaining, buf.len());
-        self.inner.poll_read(cx, &mut buf[..upper])
+        self.inner.poll_read(wk, &mut buf[..upper])
     }
 }

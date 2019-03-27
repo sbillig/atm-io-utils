@@ -2,12 +2,10 @@
 //!
 //! Inspired by (and bluntly stealing from) the [partial-io](https://crates.io/crates/partial-io) crate.
 
+use std::task::{Poll, Poll::Pending, Waker};
+use std::io::Error;
 use std::cmp::min;
-
-use futures_core::Poll;
-use futures_core::Async::Pending;
-use futures_core::task::Context;
-use futures_io::{AsyncRead, AsyncWrite, Error, IoVec};
+use futures_io::{AsyncRead, AsyncWrite, IoVec};
 
 /// The different operations supported by the partial wrappers.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -54,17 +52,17 @@ impl<R, Ops> AsyncRead for PartialRead<R, Ops>
     where R: AsyncRead,
           Ops: Iterator<Item = PartialOp>
 {
-    fn poll_read(&mut self, cx: &mut Context, buf: &mut [u8]) -> Poll<usize, Error> {
+    fn poll_read(&mut self, wk: &Waker, buf: &mut [u8]) -> Poll<Result<usize, Error>> {
         match self.ops.next() {
             None |
-            Some(PartialOp::Unlimited) => self.reader.poll_read(cx, buf),
+            Some(PartialOp::Unlimited) => self.reader.poll_read(wk, buf),
             Some(PartialOp::Pending) => {
-                cx.waker().wake();
-                Ok(Pending)
+                wk.wake();
+                Pending
             }
             Some(PartialOp::Limited(n)) => {
                 let len = min(n, buf.len());
-                self.reader.poll_read(cx, &mut buf[..len])
+                self.reader.poll_read(wk, &mut buf[..len])
             }
         }
     }
@@ -73,20 +71,20 @@ impl<R, Ops> AsyncRead for PartialRead<R, Ops>
 impl<W, Ops> AsyncWrite for PartialRead<W, Ops>
     where W: AsyncWrite
 {
-    fn poll_write(&mut self, cx: &mut Context, buf: &[u8]) -> Poll<usize, Error> {
-        self.reader.poll_write(cx, buf)
+    fn poll_write(&mut self, wk: &Waker, buf: &[u8]) -> Poll<Result<usize, Error>> {
+        self.reader.poll_write(wk, buf)
     }
 
-    fn poll_flush(&mut self, cx: &mut Context) -> Poll<(), Error> {
-        self.reader.poll_flush(cx)
+    fn poll_flush(&mut self, wk: &Waker) -> Poll<Result<(), Error>> {
+        self.reader.poll_flush(wk)
     }
 
-    fn poll_close(&mut self, cx: &mut Context) -> Poll<(), Error> {
-        self.reader.poll_close(cx)
+    fn poll_close(&mut self, wk: &Waker) -> Poll<Result<(), Error>> {
+        self.reader.poll_close(wk)
     }
 
-    fn poll_vectored_write(&mut self, cx: &mut Context, vec: &[&IoVec]) -> Poll<usize, Error> {
-        self.reader.poll_vectored_write(cx, vec)
+    fn poll_vectored_write(&mut self, wk: &Waker, vec: &[&IoVec]) -> Poll<Result<usize, Error>> {
+        self.reader.poll_vectored_write(wk, vec)
     }
 }
 
@@ -124,38 +122,38 @@ impl<W, Ops> AsyncWrite for PartialWrite<W, Ops>
     where W: AsyncWrite,
           Ops: Iterator<Item = PartialOp>
 {
-    fn poll_write(&mut self, cx: &mut Context, buf: &[u8]) -> Poll<usize, Error> {
+    fn poll_write(&mut self, wk: &Waker, buf: &[u8]) -> Poll<Result<usize, Error>> {
         match self.ops.next() {
             None |
-            Some(PartialOp::Unlimited) => self.writer.poll_write(cx, buf),
+            Some(PartialOp::Unlimited) => self.writer.poll_write(wk, buf),
             Some(PartialOp::Pending) => {
-                cx.waker().wake();
-                Ok(Pending)
+                wk.wake();
+                Pending
             }
             Some(PartialOp::Limited(n)) => {
                 let len = min(n, buf.len());
-                self.writer.poll_write(cx, &buf[..len])
+                self.writer.poll_write(wk, &buf[..len])
             }
         }
     }
 
-    fn poll_flush(&mut self, cx: &mut Context) -> Poll<(), Error> {
+    fn poll_flush(&mut self, wk: &Waker) -> Poll<Result<(), Error>> {
         match self.ops.next() {
             Some(PartialOp::Pending) => {
-                cx.waker().wake();
-                Ok(Pending)
+                wk.wake();
+                Pending
             }
-            _ => self.writer.poll_flush(cx),
+            _ => self.writer.poll_flush(wk),
         }
     }
 
-    fn poll_close(&mut self, cx: &mut Context) -> Poll<(), Error> {
+    fn poll_close(&mut self, wk: &Waker) -> Poll<Result<(), Error>> {
         match self.ops.next() {
             Some(PartialOp::Pending) => {
-                cx.waker().wake();
-                Ok(Pending)
+                wk.wake();
+                Pending
             }
-            _ => self.writer.poll_close(cx),
+            _ => self.writer.poll_close(wk),
         }
     }
 }
@@ -163,8 +161,8 @@ impl<W, Ops> AsyncWrite for PartialWrite<W, Ops>
 impl<W, Ops> AsyncRead for PartialWrite<W, Ops>
     where W: AsyncRead
 {
-    fn poll_read(&mut self, cx: &mut Context, buf: &mut [u8]) -> Poll<usize, Error> {
-        self.writer.poll_read(cx, buf)
+    fn poll_read(&mut self, wk: &Waker, buf: &mut [u8]) -> Poll<Result<usize, Error>> {
+        self.writer.poll_read(wk, buf)
     }
 }
 
